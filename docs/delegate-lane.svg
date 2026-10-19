@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" role="img" aria-labelledby="t d" font-family="system-ui,-apple-system,Segoe UI,sans-serif">
+  <title id="t">Cheap-model delegation for big file reads</title>
+  <desc id="d">When the main model tries to read a large file, a PreToolUse hook blocks the read and points it at tokemitsu delegate read. A cheap worker model reads the whole file and returns only the answer, so the file never enters the main context.</desc>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker>
+  </defs>
+  <rect width="900" height="340" rx="14" fill="#fafaf7" stroke="#e4e2da"/>
+  <text x="450" y="28" text-anchor="middle" font-size="16" font-weight="700" fill="#1b1b18">Delegation: the big file goes to a cheap worker, only the answer comes back</text>
+
+  <rect x="25" y="70" width="170" height="160" rx="12" fill="#e8eefc" stroke="#4b6bd6" stroke-width="1.5"/>
+  <text x="110" y="98" text-anchor="middle" font-size="14" font-weight="700">Main model</text>
+  <text x="110" y="125" text-anchor="middle" font-size="12" fill="#333">wants: Read big-file.js</text>
+  <text x="110" y="150" text-anchor="middle" font-size="12" fill="#333">(no offset / limit)</text>
+  <rect x="45" y="175" width="130" height="38" rx="6" fill="#fdecdf" stroke="#c4562b"/>
+  <text x="110" y="198" text-anchor="middle" font-size="12" fill="#222">context</text>
+  <!-- answer arriving in context -->
+  <rect x="55" y="182" width="0" height="10" rx="3" fill="#c4562b"><animate attributeName="width" dur="10s" repeatCount="indefinite" values="0;0;0;40;40;0" keyTimes="0;0.6;0.7;0.78;0.97;1"/></rect>
+
+  <rect x="260" y="70" width="170" height="160" rx="12" fill="#fff4dc" stroke="#a06a00" stroke-width="1.5"/>
+  <text x="345" y="98" text-anchor="middle" font-size="14" font-weight="700" fill="#734c00">PreToolUse hook</text>
+  <text x="345" y="122" text-anchor="middle" font-size="12" fill="#333">tokemitsu hook pre-tool</text>
+  <text x="345" y="150" text-anchor="middle" font-size="12" fill="#333">file over 350 lines?</text>
+  <text x="345" y="170" text-anchor="middle" font-size="12" font-weight="700" fill="#a02b2b">deny, use delegate</text>
+  <text x="345" y="196" text-anchor="middle" font-size="11" fill="#555">offset / limit reads and</text>
+  <text x="345" y="210" text-anchor="middle" font-size="11" fill="#555">grep pipelines pass through</text>
+
+  <rect x="495" y="70" width="170" height="160" rx="12" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.5"/>
+  <text x="580" y="98" text-anchor="middle" font-size="14" font-weight="700">Worker (haiku)</text>
+  <text x="580" y="122" text-anchor="middle" font-size="12" fill="#333">claude -p, no tools,</text>
+  <text x="580" y="138" text-anchor="middle" font-size="12" fill="#333">neutral directory</text>
+  <rect x="520" y="156" width="120" height="48" rx="6" fill="#d1d5db" stroke="#9ca3af"/>
+  <text x="580" y="185" text-anchor="middle" font-size="12" fill="#222">whole file in</text>
+  <rect x="520" y="156" width="120" height="48" rx="6" fill="#a06a00" opacity="0"><animate attributeName="opacity" dur="10s" repeatCount="indefinite" values="0;0;0.35;0.35;0;0" keyTimes="0;0.3;0.38;0.55;0.6;1"/></rect>
+
+  <rect x="730" y="70" width="145" height="160" rx="12" fill="#fdecdf" stroke="#c4562b" stroke-width="1.5"/>
+  <text x="802" y="98" text-anchor="middle" font-size="14" font-weight="700">Answer</text>
+  <text x="802" y="130" text-anchor="middle" font-size="12" fill="#333">short, with line</text>
+  <text x="802" y="146" text-anchor="middle" font-size="12" fill="#333">references</text>
+  <text x="802" y="190" text-anchor="middle" font-size="11" fill="#555">ledger entry written</text>
+  <text x="802" y="205" text-anchor="middle" font-size="11" fill="#555">for the report</text>
+
+  <g stroke="#9ca3af" stroke-width="1.5" fill="none" marker-end="url(#ah)">
+    <path d="M195,150 L260,150"/><path d="M430,150 L495,150"/><path d="M665,150 L730,150"/>
+    <path d="M802,230 L802,262 L110,262 L110,232" stroke-dasharray="6 5"/>
+  </g>
+
+  <!-- big packet to worker -->
+  <rect x="-14" y="-10" width="28" height="20" rx="3" fill="#6b7280" opacity="0">
+    <animateMotion dur="10s" repeatCount="indefinite" keyPoints="0;0;1;1;1" keyTimes="0;0.1;0.35;0.4;1" calcMode="linear" path="M215,150 L585,150"/>
+    <animate attributeName="opacity" dur="10s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.1;0.12;0.34;0.38;1"/>
+  </rect>
+  <!-- small packet back -->
+  <circle r="5" fill="#c4562b" opacity="0">
+    <animateMotion dur="10s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.55;0.78;1" calcMode="linear" path="M665,150 L802,150 L802,262 L110,262 L110,215"/>
+    <animate attributeName="opacity" dur="10s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.55;0.57;0.77;0.79;1"/>
+  </circle>
+
+  <text x="450" y="296" text-anchor="middle" font-size="12" fill="#444">The worker still reads the entire file, at a cheaper per-token rate. The main context only holds the answer.</text>
+  <text x="450" y="316" text-anchor="middle" font-size="11" fill="#6b7280">Good for: "what does this file do?", boilerplate in the style of existing files. Not for: editing, reasoning, review. Adds seconds of latency per call.</text>
+</svg>

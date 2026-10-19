@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 470" role="img" aria-labelledby="t d" font-family="system-ui,-apple-system,Segoe UI,sans-serif">
+  <title id="t">Agent loop with three token-reduction lanes</title>
+  <desc id="d">An agent loop: the model decides, calls a tool, and the result re-enters context. Shell output is compressed by rtk, structure questions are answered by GitNexus, and big file reads are routed to a cheap worker model before the result re-enters context.</desc>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker>
+    <path id="p1" d="M185,215 C245,215 250,100 305,100 L625,100 C680,100 685,215 725,215"/>
+    <path id="p2" d="M185,215 L305,215 L625,215 L725,215"/>
+    <path id="p3" d="M185,215 C245,215 250,330 305,330 L625,330 C680,330 685,215 725,215"/>
+  </defs>
+  <rect width="900" height="470" rx="14" fill="#fafaf7" stroke="#e4e2da"/>
+  <text x="450" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#1b1b18">Every agent turn re-reads its context. Each tool result is a chance to make that context smaller.</text>
+
+  <!-- model -->
+  <rect x="30" y="175" width="155" height="80" rx="12" fill="#e8eefc" stroke="#4b6bd6" stroke-width="1.5"/>
+  <text x="107" y="208" text-anchor="middle" font-size="15" font-weight="700" fill="#1b1b18">1. Model decides</text>
+  <text x="107" y="230" text-anchor="middle" font-size="12" fill="#444">reasons over context,</text>
+  <text x="107" y="245" text-anchor="middle" font-size="12" fill="#444">picks the next tool call</text>
+
+  <!-- context -->
+  <rect x="725" y="175" width="150" height="80" rx="12" fill="#fdecdf" stroke="#c4562b" stroke-width="1.5"/>
+  <text x="800" y="208" text-anchor="middle" font-size="15" font-weight="700" fill="#1b1b18">3. Context</text>
+  <text x="800" y="230" text-anchor="middle" font-size="12" fill="#444">result is appended and</text>
+  <text x="800" y="245" text-anchor="middle" font-size="12" fill="#444">re-read on every later turn</text>
+
+  <!-- lanes -->
+  <text x="465" y="58" text-anchor="middle" font-size="13" font-weight="700" fill="#6b7280" letter-spacing="1">2. TOOL CALL - INTERCEPTED BEFORE THE RESULT RE-ENTERS CONTEXT</text>
+  <rect x="305" y="65" width="320" height="70" rx="10" fill="#e6f4ee" stroke="#1f7a5a" stroke-width="1.5"/>
+  <text x="465" y="92" text-anchor="middle" font-size="14" font-weight="700" fill="#14573f">rtk</text>
+  <text x="465" y="112" text-anchor="middle" font-size="12" fill="#333">shell commands (git, tests, npm, linters)</text>
+  <text x="465" y="127" text-anchor="middle" font-size="12" fill="#333">output filtered and de-duplicated</text>
+
+  <rect x="305" y="180" width="320" height="70" rx="10" fill="#efe9fb" stroke="#7048c6" stroke-width="1.5"/>
+  <text x="465" y="207" text-anchor="middle" font-size="14" font-weight="700" fill="#4a2c8f">GitNexus</text>
+  <text x="465" y="227" text-anchor="middle" font-size="12" fill="#333">"who calls this? what breaks?"</text>
+  <text x="465" y="242" text-anchor="middle" font-size="12" fill="#333">one graph lookup instead of many grep/read calls</text>
+
+  <rect x="305" y="295" width="320" height="70" rx="10" fill="#fff4dc" stroke="#a06a00" stroke-width="1.5"/>
+  <text x="465" y="322" text-anchor="middle" font-size="14" font-weight="700" fill="#734c00">Cheap-model delegation</text>
+  <text x="465" y="342" text-anchor="middle" font-size="12" fill="#333">whole-file reads of big files</text>
+  <text x="465" y="357" text-anchor="middle" font-size="12" fill="#333">answered by a small worker model</text>
+
+  <!-- static flow arrows -->
+  <path d="M185,215 C245,215 250,100 305,100" fill="none" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+  <path d="M185,215 L305,215" fill="none" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+  <path d="M185,215 C245,215 250,330 305,330" fill="none" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+  <path d="M625,100 C680,100 685,215 725,215" fill="none" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+  <path d="M625,215 L725,215" fill="none" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+  <path d="M625,330 C680,330 685,215 725,215" fill="none" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ah)"/>
+  <!-- loop back -->
+  <path d="M800,255 L800,420 L107,420 L107,257" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="6 5" marker-end="url(#ah)"/>
+  <text x="453" y="440" text-anchor="middle" font-size="12" fill="#6b7280">next turn: the model reads the whole (now smaller) context again</text>
+
+  <!-- animated packets, one lane active at a time -->
+  <g>
+    <circle r="10" fill="#1f7a5a" opacity="0">
+      <animateMotion dur="9s" begin="0s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;0.33;1" calcMode="linear"><mpath href="#p1"/></animateMotion>
+      <animate attributeName="r" dur="9s" begin="0s" repeatCount="indefinite" values="10;10;4;4;4" keyTimes="0;0.07;0.17;0.33;1"/>
+      <animate attributeName="opacity" dur="9s" begin="0s" repeatCount="indefinite" values="0;1;1;0;0" keyTimes="0;0.01;0.32;0.34;1"/>
+    </circle>
+    <circle r="10" fill="#7048c6" opacity="0">
+      <animateMotion dur="9s" begin="3s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;0.33;1" calcMode="linear"><mpath href="#p2"/></animateMotion>
+      <animate attributeName="r" dur="9s" begin="3s" repeatCount="indefinite" values="10;10;4;4;4" keyTimes="0;0.07;0.17;0.33;1"/>
+      <animate attributeName="opacity" dur="9s" begin="3s" repeatCount="indefinite" values="0;1;1;0;0" keyTimes="0;0.01;0.32;0.34;1"/>
+    </circle>
+    <circle r="10" fill="#a06a00" opacity="0">
+      <animateMotion dur="9s" begin="6s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;0.33;1" calcMode="linear"><mpath href="#p3"/></animateMotion>
+      <animate attributeName="r" dur="9s" begin="6s" repeatCount="indefinite" values="10;10;4;4;4" keyTimes="0;0.07;0.17;0.33;1"/>
+      <animate attributeName="opacity" dur="9s" begin="6s" repeatCount="indefinite" values="0;1;1;0;0" keyTimes="0;0.01;0.32;0.34;1"/>
+    </circle>
+  </g>
+  <!-- lane highlight pulses -->
+  <rect x="305" y="65" width="320" height="70" rx="10" fill="none" stroke="#1f7a5a" stroke-width="3" opacity="0"><animate attributeName="opacity" dur="9s" repeatCount="indefinite" values="0;1;1;0;0" keyTimes="0;0.05;0.30;0.34;1"/></rect>
+  <rect x="305" y="180" width="320" height="70" rx="10" fill="none" stroke="#7048c6" stroke-width="3" opacity="0"><animate attributeName="opacity" dur="9s" begin="3s" repeatCount="indefinite" values="0;1;1;0;0" keyTimes="0;0.05;0.30;0.34;1"/></rect>
+  <rect x="305" y="295" width="320" height="70" rx="10" fill="none" stroke="#a06a00" stroke-width="3" opacity="0"><animate attributeName="opacity" dur="9s" begin="6s" repeatCount="indefinite" values="0;1;1;0;0" keyTimes="0;0.05;0.30;0.34;1"/></rect>
+  <text x="450" y="460" text-anchor="middle" font-size="11" fill="#9ca3af">The packet is the tool result: it is big when it leaves the tool and small when it reaches context.</text>
+</svg>

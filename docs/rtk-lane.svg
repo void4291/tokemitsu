@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 300" role="img" aria-labelledby="t d" font-family="system-ui,-apple-system,Segoe UI,sans-serif">
+  <title id="t">rtk: shell output compression</title>
+  <desc id="d">The agent runs a shell command. A PreToolUse hook rewrites it to go through rtk. The shell produces long output, rtk filters it, and only a short summary reaches context.</desc>
+  <defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
+  <rect width="900" height="300" rx="14" fill="#fafaf7" stroke="#e4e2da"/>
+  <text x="450" y="28" text-anchor="middle" font-size="16" font-weight="700" fill="#1b1b18">rtk: compress command output before the model reads it</text>
+
+  <rect x="25" y="70" width="150" height="150" rx="12" fill="#e8eefc" stroke="#4b6bd6" stroke-width="1.5"/>
+  <text x="100" y="98" text-anchor="middle" font-size="14" font-weight="700">Agent</text>
+  <text x="100" y="125" text-anchor="middle" font-size="12" fill="#333">Bash: git status</text>
+  <text x="100" y="145" text-anchor="middle" font-size="12" fill="#333">Bash: npm test</text>
+  <text x="100" y="175" text-anchor="middle" font-size="11" fill="#555">command is unchanged</text>
+  <text x="100" y="190" text-anchor="middle" font-size="11" fill="#555">from the agent's view</text>
+
+  <rect x="215" y="70" width="150" height="150" rx="12" fill="#e6f4ee" stroke="#1f7a5a" stroke-width="1.5"/>
+  <text x="290" y="98" text-anchor="middle" font-size="14" font-weight="700" fill="#14573f">PreToolUse hook</text>
+  <text x="290" y="122" text-anchor="middle" font-size="11" fill="#333">rtk hook claude</text>
+  <text x="290" y="150" text-anchor="middle" font-size="12" fill="#333">git status</text>
+  <text x="290" y="168" text-anchor="middle" font-size="12" fill="#333">becomes</text>
+  <text x="290" y="186" text-anchor="middle" font-size="12" font-weight="700" fill="#14573f">rtk git status</text>
+
+  <rect x="405" y="70" width="170" height="150" rx="12" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.5"/>
+  <text x="490" y="98" text-anchor="middle" font-size="14" font-weight="700">Shell output</text>
+  <!-- raw lines -->
+  <g fill="#6b7280">
+    <rect x="420" y="112" width="140" height="6" rx="2"><animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="0;1;1;1;0" keyTimes="0;0.05;0.1;0.55;0.6"/></rect>
+    <rect x="420" y="124" width="110" height="6" rx="2"><animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="0;0;1;1;0" keyTimes="0;0.05;0.12;0.55;0.6"/></rect>
+    <rect x="420" y="136" width="135" height="6" rx="2"><animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="0;0;1;1;0" keyTimes="0;0.1;0.14;0.55;0.6"/></rect>
+    <rect x="420" y="148" width="90" height="6" rx="2"><animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="0;0;1;1;0" keyTimes="0;0.12;0.16;0.55;0.6"/></rect>
+    <rect x="420" y="160" width="140" height="6" rx="2"><animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="0;0;1;1;0" keyTimes="0;0.14;0.18;0.55;0.6"/></rect>
+    <rect x="420" y="172" width="120" height="6" rx="2"><animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="0;0;1;1;0" keyTimes="0;0.16;0.2;0.55;0.6"/></rect>
+    <rect x="420" y="184" width="130" height="6" rx="2"><animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="0;0;1;1;0" keyTimes="0;0.18;0.22;0.55;0.6"/></rect>
+    <rect x="420" y="196" width="100" height="6" rx="2"><animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="0;0;1;1;0" keyTimes="0;0.2;0.24;0.55;0.6"/></rect>
+  </g>
+  <text x="490" y="214" text-anchor="middle" font-size="10" fill="#555">hundreds of lines</text>
+
+  <!-- filter funnel -->
+  <path d="M595,95 L655,150 L595,205 Z" fill="#1f7a5a" opacity="0.15" stroke="#1f7a5a" stroke-width="1.5"/>
+  <text x="615" y="155" text-anchor="middle" font-size="11" font-weight="700" fill="#14573f">filter</text>
+  <text x="625" y="236" text-anchor="middle" font-size="10" fill="#555">group, dedupe, keep what matters</text>
+
+  <rect x="690" y="70" width="185" height="150" rx="12" fill="#fdecdf" stroke="#c4562b" stroke-width="1.5"/>
+  <text x="782" y="98" text-anchor="middle" font-size="14" font-weight="700">Context</text>
+  <g fill="#c4562b">
+    <rect x="710" y="126" width="120" height="6" rx="2"><animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="0;0;1;1;0" keyTimes="0;0.5;0.58;0.95;1"/></rect>
+    <rect x="710" y="140" width="85" height="6" rx="2"><animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="0;0;1;1;0" keyTimes="0;0.55;0.62;0.95;1"/></rect>
+    <rect x="710" y="154" width="100" height="6" rx="2"><animate attributeName="opacity" dur="8s" repeatCount="indefinite" values="0;0;1;1;0" keyTimes="0;0.6;0.66;0.95;1"/></rect>
+  </g>
+  <text x="782" y="196" text-anchor="middle" font-size="11" fill="#555">a few lines</text>
+
+  <path d="M175,145 L215,145" stroke="#9ca3af" stroke-width="1.5" fill="none" marker-end="url(#ah)"/>
+  <path d="M365,145 L405,145" stroke="#9ca3af" stroke-width="1.5" fill="none" marker-end="url(#ah)"/>
+  <path d="M575,145 L595,145" stroke="#9ca3af" stroke-width="1.5" fill="none" marker-end="url(#ah)"/>
+  <path d="M655,150 L690,150" stroke="#9ca3af" stroke-width="1.5" fill="none" marker-end="url(#ah)"/>
+
+  <text x="450" y="268" text-anchor="middle" font-size="12" fill="#444">What shrinks: command output. What does not: system prompt, conversation history, the model's own replies.</text>
+  <text x="450" y="286" text-anchor="middle" font-size="11" fill="#6b7280">rtk's "60-90%" describes output size, not your bill.</text>
+</svg>
