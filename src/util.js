@@ -22,14 +22,27 @@ export function writeJson(p, obj) {
   fs.mkdirSync(path.dirname(p), { recursive: true });
   fs.writeFileSync(p, JSON.stringify(obj, null, 2) + '\n');
 }
+/**
+ * Node refuses to spawn .cmd/.bat shims (npm globals like gitnexus.CMD) without a shell on Windows.
+ * Route those through the shell with each token quoted.
+ */
+function spawnPlan(cmd, args) {
+  if (process.platform === 'win32' && /.(cmd|bat)$/i.test(cmd)) {
+    const q = (a) => (/^[w@%+=:,./\-]+$/.test(a) ? a : `"${String(a).replace(/"/g, '\\"')}"`);
+    return { cmd: q(cmd), args: args.map(q), shell: true };
+  }
+  return { cmd, args, shell: false };
+}
 /** Run a command and capture output. Never throws. */
 export function run(cmd, args = [], { cwd, env, input, timeout = 60_000 } = {}) {
-  const r = spawnSync(cmd, args, { cwd, env: env ? { ...process.env, ...env } : process.env, input, encoding: 'utf8', timeout, maxBuffer: 64e6, shell: false });
+  const p = spawnPlan(cmd, args);
+  const r = spawnSync(p.cmd, p.args, { cwd, env: env ? { ...process.env, ...env } : process.env, input, encoding: 'utf8', timeout, maxBuffer: 64e6, shell: p.shell });
   return { status: r.status ?? (r.error ? 127 : 1), stdout: r.stdout ?? '', stderr: r.stderr ?? '', error: r.error };
 }
 /** Run a command attached to the terminal. */
 export function runInherit(cmd, args = [], { cwd, env } = {}) {
-  const r = spawnSync(cmd, args, { cwd, env: env ? { ...process.env, ...env } : process.env, stdio: 'inherit' });
+  const p = spawnPlan(cmd, args);
+  const r = spawnSync(p.cmd, p.args, { cwd, env: env ? { ...process.env, ...env } : process.env, stdio: 'inherit', shell: p.shell });
   return r.status ?? (r.error ? 127 : 1);
 }
 export async function confirm(question, { yes = false, defaultNo = false } = {}) {
