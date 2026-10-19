@@ -1,6 +1,6 @@
 {
   "name": "tokemitsu",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Claude Code only: one-command setup for rtk and GitNexus, a cheap-model delegation pattern, and a local dashboard showing tokens/dollars spent vs saved.",
   "type": "module",
   "bin": {
