@@ -22,7 +22,9 @@
     "node": ">=18.3"
   },
   "scripts": {
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "login": "npm login",
+    "release": "npm publish"
   },
   "keywords": [
     "claude-code",
