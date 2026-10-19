@@ -1,0 +1,50 @@
+{
+  "name": "tokemitsu",
+  "version": "0.2.0",
+  "description": "Claude Code only: one-command setup for rtk and GitNexus, a cheap-model delegation pattern, and a local dashboard showing tokens/dollars spent vs saved.",
+  "type": "module",
+  "bin": {
+    "tokemitsu": "bin/tokemitsu.js"
+  },
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE",
+    "NOTICE.md",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=18.3"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "demo": "node scripts/seed-demo.mjs ./tk-demo"
+  },
+  "keywords": [
+    "claude-code",
+    "tokens",
+    "cost",
+    "analytics",
+    "rtk",
+    "gitnexus",
+    "mcp",
+    "hooks"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OWNER/tokemitsu.git"
+  },
+  "bugs": {
+    "url": "https://github.com/OWNER/tokemitsu/issues"
+  },
+  "homepage": "https://github.com/OWNER/tokemitsu#readme",
+  "publishConfig": {
+    "access": "public"
+  }
+}
