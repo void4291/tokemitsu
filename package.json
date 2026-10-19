@@ -37,12 +37,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OWNER/tokemitsu.git"
+    "url": "git+https://github.com/void4291/tokemitsu.git"
   },
   "bugs": {
-    "url": "https://github.com/OWNER/tokemitsu/issues"
+    "url": "https://github.com/void4291/tokemitsu/issues"
   },
-  "homepage": "https://github.com/OWNER/tokemitsu#readme",
+  "homepage": "https://github.com/void4291/tokemitsu#readme",
   "publishConfig": {
     "access": "public"
   }
