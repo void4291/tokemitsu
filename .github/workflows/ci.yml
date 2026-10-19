@@ -1,5 +1,8 @@
 name: CI
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
 jobs:
   test:
     runs-on: ${{ matrix.os }}
@@ -16,26 +19,56 @@ jobs:
 
   publish:
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
+      packages: write
       id-token: write
     steps:
       - uses: actions/checkout@v4
+      - run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_ENV"
+
+      # Each target is checked on its own: npm refuses to republish a version, and a version missing from one
+      # registry (e.g. published by hand to npmjs) still gets published to the others.
+
+      # 1. npmjs.com
       - uses: actions/setup-node@v4
         with: { node-version: 22, registry-url: "https://registry.npmjs.org" }
-      # npm refuses to republish an existing version, so only publish when package.json has a new one.
-      - id: check
+      - name: Publish to npmjs
         run: |
-          v=$(node -p "require('./package.json').version")
-          if npm view "tokemitsu@$v" version >/dev/null 2>&1; then
-            echo "tokemitsu@$v is already on npm; bump the version to publish."
-            echo "publish=false" >> "$GITHUB_OUTPUT"
+          if npm view "tokemitsu@$version" version >/dev/null 2>&1; then
+            echo "tokemitsu@$version is already on npmjs; skipping."
           else
-            echo "publish=true" >> "$GITHUB_OUTPUT"
+            npm publish --provenance --access public
           fi
-      - if: steps.check.outputs.publish == 'true'
-        run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # 2. GitHub Packages (shows in the repo's Packages sidebar). It requires a name scoped to the repo owner.
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, registry-url: "https://npm.pkg.github.com", scope: "@${{ github.repository_owner }}" }
+      - name: Publish to GitHub Packages
+        run: |
+          pkg="@${GITHUB_REPOSITORY_OWNER,,}/tokemitsu"
+          if npm view "$pkg@$version" version >/dev/null 2>&1; then
+            echo "$pkg@$version is already on GitHub Packages; skipping."
+          else
+            npm pkg set name="$pkg"
+            npm publish
+            git checkout -- package.json
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 3. GitHub Release with the tarball attached
+      - name: Create GitHub Release
+        run: |
+          if gh release view "v$version" >/dev/null 2>&1; then
+            echo "Release v$version already exists; skipping."
+          else
+            npm pack
+            gh release create "v$version" "tokemitsu-$version.tgz" --title "v$version" --generate-notes --target "$GITHUB_SHA"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
