@@ -2,13 +2,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import readline from 'node:readline';
 import { projectsDir } from './paths.js';
-import { estimateTokens } from './util.js';
 
 /**
  * Reads Claude Code's own session logs (~/.claude/projects/**.jsonl) - local, read-only.
  * Extracts: (1) real token usage per day/model, deduped by message.id+requestId (a response is
  * logged once per content block, so we keep the per-field max); (2) GitNexus MCP tool results
- * (their size is what lands in context); (3) session lengths for the carry-over model.
+ * (their size is what lands in context).
  */
 function listJsonl(dir) {
   const out = [];
@@ -33,7 +32,7 @@ const toolResultText = (c) => {
 
 export async function scanClaudeLogs({ since = null, project = null, dir = projectsDir() } = {}) {
   const msgs = new Map();        // key -> {ts, model, in, out, cw, cr, session}
-  const gnCalls = [];            // {ts, tool, tokens, project}
+  const gnCalls = [];            // {ts, tool, bytes, project}
   const sessions = new Map();    // session -> Set(msg keys)
   let files = 0;
 
@@ -80,18 +79,11 @@ export async function scanClaudeLogs({ since = null, project = null, dir = proje
           const p = pendingGn.get(b.tool_use_id);
           if (!p) continue;
           pendingGn.delete(b.tool_use_id);
-          gnCalls.push({ ...p, tokens: estimateTokens(toolResultText(b.content)) });
+          gnCalls.push({ ...p, bytes: Buffer.byteLength(toolResultText(b.content)) });
         }
       }
     }
   }
 
-  // average remaining turns after a given point in a session, capped later by config
-  let remW = 0, remN = 0;
-  for (const s of sessions.values()) {
-    const n = s.size;
-    remW += (n * (n - 1)) / 2; // sum over turns of remaining turns
-    remN += n;
-  }
-  return { messages: [...msgs.values()], gnCalls, meanRemainingTurns: remN ? remW / remN : 0, files, sessions: sessions.size };
+  return { messages: [...msgs.values()], gnCalls, files, sessions: sessions.size };
 }

@@ -78,7 +78,7 @@ test('setup refuses to install GitNexus without license acceptance (non-interact
   } finally { s.cleanup(); }
 });
 
-test('report CLI prints with/without/net and honest labels', async () => {
+test('report CLI prints recorded usage only, with honest labels', async () => {
   const s = sandbox();
   try {
     fakeRtk(s);
@@ -86,9 +86,11 @@ test('report CLI prints with/without/net and honest labels', async () => {
     writeLog(s.claude, '/p/a', [assistant('/p/a', ts, 'm1', 'claude-sonnet-5-5', [100000, 2000])]);
     const r = cli(s, ['report', '--since', '7d'], { TOKEMITSU_HOME: s.home, CLAUDE_CONFIG_DIR: s.claude });
     assert.equal(r.status, 0, r.stderr);
-    for (const w of ['Without these tools', 'What you spent', 'You saved (net)', 'reported', 'estimated', 'bytes/4']) assert.ok(r.stdout.includes(w), w);
+    for (const w of ['Cache reads', 'Output', 'reported', 'measured', 'No dollar value']) assert.ok(r.stdout.includes(w), w);
+    for (const w of ['Without these tools', 'You saved', 'What you spent']) assert.ok(!r.stdout.includes(w), w);
     const j = JSON.parse(cli(s, ['report', '--json'], { TOKEMITSU_HOME: s.home, CLAUDE_CONFIG_DIR: s.claude }).stdout);
-    assert.ok(j.totals.netSavedUsd > 0);
+    assert.equal(j.totals.tokens.in, 100000);
+    assert.equal(j.totals.netSavedUsd, undefined);
   } finally { s.cleanup(); }
 });
 
@@ -101,9 +103,9 @@ test('dashboard serves page + JSON on loopback and rejects foreign Host headers'
     const get = (p, host) => new Promise((res, rej) => http.get({ host: '127.0.0.1', port, path: p, headers: host ? { host } : {} }, (r) => { let b = ''; r.on('data', (d) => (b += d)); r.on('end', () => res({ code: r.statusCode, body: b })); }).on('error', rej));
     assert.equal(server.address().address, '127.0.0.1');
     const page = await get('/');
-    assert.equal(page.code, 200); assert.match(page.body, /spent vs saved/);
+    assert.equal(page.code, 200); assert.match(page.body, /tokemitsu/);
     const sum = JSON.parse((await get('/api/summary?since=30d')).body);
-    assert.equal(sum.lanes.find((l) => l.id === 'rtk').avoidedTokens, 80000);
+    assert.equal(sum.lanes.find((l) => l.id === 'rtk').metrics.savedTokens, 80000);
     assert.ok(Array.isArray(JSON.parse((await get('/api/health')).body).checks));
     assert.equal((await get('/', 'evil.example.com')).code, 403);
     assert.equal((await get('/nope')).code, 404);

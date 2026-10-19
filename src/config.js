@@ -13,11 +13,10 @@ export const DEFAULTS = {
     timeoutSec: 120,
   },
   graph: {
-    // GitNexus savings are estimated: avoided = response tokens x (multiplier - 1). Calibrate with `graph-bench`.
+    // Only used by `graph-bench` to show a ratio; no report or dashboard figure uses it.
     estimatedExplorationMultiplier: 3,
     benchFilesRead: 5,
   },
-  analytics: { carryTurnsCap: 25 },
 };
 
 /** Defaults < ~/.tokemitsu/config.json < <project>/.tokemitsu/config.json < environment. */

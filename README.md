@@ -1,9 +1,9 @@
 # tokemitsu
 
-Cut your **Claude Code** token spend and see exactly what you saved.
+Cut your **Claude Code** token usage and see what was actually recorded.
 
 One package that sets up three token-saving lanes, runs entirely on your machine (no API keys), and shows a
-clear **spent vs. without-these-tools** comparison in the terminal and in a small local dashboard.
+plain report of **recorded usage** in the terminal and in a small local dashboard. No prices or savings are assumed.
 
 | Lane | What it does | Who maintains it |
 | --- | --- | --- |
@@ -52,7 +52,7 @@ Restart Claude Code after `setup` / `delegate enable` so it loads the new hooks 
 | `tokemitsu delegate read <file> --ask "<question>"` | Cheap model answers about a big file |
 | `tokemitsu delegate write --like <ref>... --spec "<what>" [--out <file>]` | Cheap model generates boilerplate in the style of your reference files |
 | `tokemitsu graph-bench <symbol>` | Measure GitNexus vs grep-and-read on your own repo |
-| `tokemitsu report [--since 30d\|all] [--here\|--project <path>] [--json]` | Spent vs saved |
+| `tokemitsu report [--since 30d\|all] [--here\|--project <path>] [--json]` | Recorded usage |
 | `tokemitsu dashboard [--port 4777] [--open]` | Local web dashboard |
 | `tokemitsu uninstall [--global] [--purge]` | Remove our hooks/skill (and optionally our data) |
 
@@ -73,32 +73,27 @@ works, including features added after this package was released.
 
 ## Reading the numbers
 
-```
-Without these tools  =  what you spent on Claude Code + everything the lanes avoided
-What you spent       =  Claude Code usage from your logs + cheap-worker cost
-You saved (net)      =  avoided - worker cost
-```
+Everything shown was recorded by something; nothing is priced, extrapolated or compared with an imagined baseline.
 
-| Lane | Basis | How it's known |
+| Figure | Basis | Where it comes from |
 | --- | --- | --- |
-| rtk | **reported** | rtk's own counter (`rtk gain`), bytes/4. Machine-wide, so it ignores `--project` |
-| GitNexus | **estimated** | Size of GitNexus MCP answers found in your Claude Code logs x (multiplier - 1), default multiplier 3. Calibrate with `graph-bench` and `.tokemitsu/config.json` |
-| Delegation read | **measured** | Whole-file tokens minus the answer kept |
-| Delegation write | **estimated** | Assumes the main model would have generated the same code |
+| Claude Code tokens (input, output, cache writes, cache reads) | **recorded** | Claude Code's own session logs, deduplicated per response |
+| rtk commands / tokens saved | **reported** | rtk's own counter (`rtk gain`, its bytes/4 estimate). Machine-wide, so it ignores `--project` |
+| GitNexus calls and bytes returned | **measured** | GitNexus MCP calls and result sizes found in your Claude Code logs |
+| Delegation calls, lines read, worker tokens, worker cost | **measured** | This tool's ledger, using the figures the `claude` CLI reported for each worker call |
 
-Honest caveats:
+Caveats:
 
-- Dollar values use **list-price assumptions by model family** (`~/.tokemitsu/pricing.json` overrides). On a
-  subscription plan this is an API-equivalent value, not your bill.
-- Token counts for savings are **bytes/4 estimates**, not a real tokenizer.
-- The headline (conservative) figure prices avoided tokens once. The "modeled upper bound" also counts that those
-  tokens would have been re-read on later turns.
-- There is no true A/B. "Without" is a counterfactual built from the assumptions above, which the dashboard shows.
+- There is **no dollar value for Claude Code usage**. On a subscription you are not billed per token, and any price
+  would be an assumption. The only dollar figure is the cost the Claude CLI itself reported for cheap-worker calls.
+- Cache reads are usually the biggest token number by far; they are cheap re-reads of already-cached context.
+- No savings are claimed for GitNexus or delegation. `tokemitsu graph-bench <symbol>` compares GitNexus with
+  grep-and-read for one symbol, and that comparison is a simulation you can inspect.
 
 Config (`~/.tokemitsu/config.json` or `<repo>/.tokemitsu/config.json`):
 
 ```json
-{ "delegate": { "model": "haiku", "thresholdLines": 350 }, "graph": { "estimatedExplorationMultiplier": 3 } }
+{ "delegate": { "model": "haiku", "thresholdLines": 350 } }
 ```
 
 ## Privacy and security

@@ -10,4 +10,3 @@ export const claudeJsonPath = () =>
 export const statePath = () => path.join(tkHome(), 'state.json');
 export const globalConfigPath = () => path.join(tkHome(), 'config.json');
 export const ledgerPath = () => path.join(tkHome(), 'ledger.jsonl');
-export const pricingPath = () => path.join(tkHome(), 'pricing.json');
