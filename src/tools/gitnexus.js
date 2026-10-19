@@ -45,6 +45,7 @@ export function doctor(cfg = {}) {
   const r = run(bin, ['doctor'], { timeout: 60_000 });
   const raw = (r.stdout + r.stderr).replace(/\x1b\[[0-9;]*[A-Za-z]/g, '');
   const warnings = [];
+  if (r.error || (r.status !== 0 && !raw.trim())) warnings.push(`could not run gitnexus doctor: ${r.error?.message ?? `exit ${r.status}, no output`}`);
   if (/native\s+[^\n]*✗|native[^\n]*(fail|error)/i.test(raw)) warnings.push('native module failed to load (reinstall: npm i -g gitnexus@latest)');
   if (/Graph store:\s*unavailable/i.test(raw)) warnings.push('graph store unavailable');
   if (/Full-text search:\s*unavailable/i.test(raw)) {
@@ -52,7 +53,7 @@ export function doctor(cfg = {}) {
       ? 'full-text search needs the VC++ 2015-2022 Redistributable (x64) — https://aka.ms/vs/17/release/vc_redist.x64.exe — or run gitnexus from Git Bash'
       : 'full-text search extension not installed — run once with network: GITNEXUS_LBUG_EXTENSION_INSTALL=auto gitnexus analyze --repair-fts');
   }
-  const fatal = r.status !== 0 || warnings.some((w) => /native|graph store/.test(w));
+  const fatal = r.status !== 0 || Boolean(r.error) || warnings.some((w) => /native|graph store/.test(w));
   return { ok: !fatal, warnings, raw };
 }
 

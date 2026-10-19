@@ -26,9 +26,11 @@ export function writeJson(p, obj) {
  * Node refuses to spawn .cmd/.bat shims (npm globals like gitnexus.CMD) without a shell on Windows.
  * Route those through the shell with each token quoted.
  */
-function spawnPlan(cmd, args) {
-  if (process.platform === 'win32' && /.(cmd|bat)$/i.test(cmd)) {
-    const q = (a) => (/^[w@%+=:,./\-]+$/.test(a) ? a : `"${String(a).replace(/"/g, '\\"')}"`);
+export function spawnPlan(cmd, args) {
+  // Bare names (npm, claude, winget) only resolve through PATHEXT on Windows; spawn without a shell does not do that.
+  if (process.platform === 'win32' && !/[\\/]/.test(cmd)) cmd = which(cmd) ?? cmd;
+  if (process.platform === 'win32' && /\.(cmd|bat)$/i.test(cmd)) {
+    const q = (a) => (/^[\w@+=:,./\\-]+$/.test(a) ? a : `"${String(a).replace(/"/g, '""')}"`);
     return { cmd: q(cmd), args: args.map(q), shell: true };
   }
   return { cmd, args, shell: false };
@@ -43,6 +45,7 @@ export function run(cmd, args = [], { cwd, env, input, timeout = 60_000 } = {}) 
 export function runInherit(cmd, args = [], { cwd, env } = {}) {
   const p = spawnPlan(cmd, args);
   const r = spawnSync(p.cmd, p.args, { cwd, env: env ? { ...process.env, ...env } : process.env, stdio: 'inherit', shell: p.shell });
+  if (r.error) console.error(`tokemitsu: could not run ${cmd}: ${r.error.message}`);
   return r.status ?? (r.error ? 127 : 1);
 }
 export async function confirm(question, { yes = false, defaultNo = false } = {}) {

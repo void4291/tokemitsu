@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { which } from '../util.js';
+import { which, spawnPlan } from '../util.js';
 
 /**
  * Cheap-model worker = a locked-down headless Claude Code call. No API key handling here:
@@ -33,7 +33,9 @@ export async function runWorker({ system, prompt, cfg, env = process.env }) {
   const t0 = Date.now();
   try {
     const out = await new Promise((resolve, reject) => {
-      const child = spawn(bin, workerArgs({ model: cfg.delegate.model, system }), {
+      const plan = spawnPlan(bin, workerArgs({ model: cfg.delegate.model, system }));
+      const child = spawn(plan.cmd, plan.args, {
+        shell: plan.shell,
         cwd, env: { ...env, TOKEMITSU_IN_WORKER: '1' }, stdio: ['pipe', 'pipe', 'pipe'],
       });
       let stdout = '', stderr = '';
