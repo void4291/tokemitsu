@@ -22,8 +22,7 @@
     "node": ">=18.3"
   },
   "scripts": {
-    "test": "node --test test/*.test.js",
-    "demo": "node scripts/seed-demo.mjs ./tk-demo"
+    "test": "node --test test/*.test.js"
   },
   "keywords": [
     "claude-code",

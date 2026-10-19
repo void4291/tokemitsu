@@ -107,12 +107,6 @@ Everything is local. The dashboard binds to `127.0.0.1`, rejects foreign Host he
 `~/.claude/projects/**/*.jsonl` and our own ledger (`~/.tokemitsu/ledger.jsonl`); nothing is uploaded.
 The only network calls are the installers/updaters of rtk and GitNexus and, on `--latest`/`update`, version checks.
 
-## Preview with fake data
-
-```bash
-npm run demo   # writes synthetic logs + a fake rtk to ./tk-demo and prints the command to view the dashboard
-```
-
 ## Contributing
 
 `npm test` (Node's built-in runner; tests use fake `claude`, `rtk` and `gitnexus` shims). PRs welcome.
