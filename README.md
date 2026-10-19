@@ -59,6 +59,76 @@ Restart Claude Code after `setup` / `delegate enable` so it loads the new hooks 
 Passthrough commands hand every argument to the original tool untouched, so anything rtk or GitNexus supports
 works, including features added after this package was released.
 
+## Where each tool sits in the agent loop
+
+Every agentic coding session is the same loop: the model decides, calls a tool, the tool's result is appended to
+context, and the whole (growing) context is read again on the next turn. All three lanes attach to the same seam,
+the moment a tool result is about to re-enter context, and each one catches a different kind of call.
+(The framing of "three layers on one loop" follows
+[AI Tokenomics - Your Agent on a Budget](https://medium.com/@wajahat.rahman/ai-token-economics-your-agent-on-a-budget-b6f37b74ee48);
+the diagrams here are original and show what tokemitsu actually wires up.)
+
+<p align="center"><img src="docs/agent-loop.svg" alt="Animated agent loop with rtk, GitNexus and delegation lanes intercepting tool results before they re-enter context" width="900"></p>
+
+```mermaid
+flowchart LR
+  M["1. Model decides<br/>next tool call"] --> C{"What kind of call?"}
+  C -->|"shell command<br/>(git, tests, npm)"| R["rtk<br/>filters output"]
+  C -->|"structure question<br/>(callers, blast radius)"| G["GitNexus<br/>graph lookup via MCP"]
+  C -->|"whole-file read<br/>of a big file"| D["Delegation hook<br/>cheap worker answers"]
+  C -->|"anything else"| T["Tool runs unchanged"]
+  R --> X["3. Result appended to context"]
+  G --> X
+  D --> X
+  T --> X
+  X -->|"re-read on every later turn"| M
+```
+
+### Integration points
+
+| Lane | Loop stage | How tokemitsu wires it | What gets smaller |
+| --- | --- | --- | --- |
+| rtk | Bash tool result | `PreToolUse` hook on `Bash` (`rtk hook claude`) rewrites `git status` to `rtk git status` | Command output |
+| GitNexus | Exploration calls | MCP server registered in Claude Code, plus a `PreToolUse` hook on `Grep\|Glob\|Bash` that adds graph context and a `PostToolUse` index-freshness check | Number of grep/read calls needed to answer a structure question |
+| Delegation | `Read` tool result | `PreToolUse` hooks on `Read` and `Bash` (`tokemitsu hook pre-tool`) deny whole-file reads over the line threshold and point at `tokemitsu delegate read` | The file contents entering the main context |
+
+### rtk: compress output before the model reads it
+
+<p align="center"><img src="docs/rtk-lane.svg" alt="Animated: a hook rewrites a shell command to go through rtk, long output is filtered to a few lines" width="900"></p>
+
+### GitNexus: one graph lookup instead of live exploration
+
+<p align="center"><img src="docs/graph-lane.svg" alt="Animated: many grep and read calls versus one GitNexus graph query" width="900"></p>
+
+### Delegation: the big file goes to a cheap worker
+
+<p align="center"><img src="docs/delegate-lane.svg" alt="Animated: a hook blocks a big read, a cheap worker reads the file, only the answer enters context" width="900"></p>
+
+```mermaid
+sequenceDiagram
+  participant A as Main model
+  participant H as PreToolUse hook
+  participant W as Worker (haiku)
+  participant X as Context
+  A->>H: Read big-file.js (no offset/limit)
+  H-->>A: deny: over 350 lines, use tokemitsu delegate read
+  A->>W: tokemitsu delegate read big-file.js --ask "..."
+  W-->>W: reads the whole file
+  W-->>X: short answer with line references
+  Note over A,X: the file itself never enters the main context
+```
+
+### What each lane does and does not reduce
+
+- **rtk** shrinks command output only. System prompt, history and the model's own replies are unchanged, so the
+  percentage rtk reports is about output size, not your bill.
+- **GitNexus** removes exploratory calls; it does not shrink what the model writes or the code it must still read to edit.
+- **Delegation** keeps the file out of the main context, which protects the window the main model reasons in. The
+  worker still reads the whole file, so the cost saving is much smaller than the context saving, and every call adds
+  seconds of latency. Editing, reasoning and review stay with the main model.
+- The animations show the mechanism, not measured amounts. For measured figures use `tokemitsu report` (see
+  [Reading the numbers](#reading-the-numbers)) and `tokemitsu graph-bench <symbol>`.
+
 ## How the delegation lane works
 
 `delegate enable` adds two PreToolUse hooks to `.claude/settings.local.json` (or `~/.claude/settings.json` with
