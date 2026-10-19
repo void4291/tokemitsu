@@ -43,7 +43,7 @@ const ICON = { ok: '✓', warn: '!', fail: '✗', skip: '-' };
 
 function passthrough(bin, args, name, hint) {
   if (!bin) { err(`${name} is not installed. ${hint}`); return 127; }
-  return spawnSync(bin, args, { stdio: 'inherit' }).status ?? 1;
+  return runInherit(bin, args);
 }
 
 export async function main(argv) {
